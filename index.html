@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>杨子文 21岁生日快乐</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #e8dff5;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+  .page {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #e8dff5;
+  }
+  .page.active { display: flex; }
+  .page.fade-out { animation: fadeOut 0.8s forwards; }
+  .page.fade-in { animation: fadeIn 0.8s forwards; }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ===== Opening ===== */
+  #opening { z-index: 100; }
+  #fireworksCanvas {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  .opening-content {
+    position: relative; z-index: 10;
+    text-align: center;
+  }
+  .opening-number {
+    font-size: 180px; font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(255,255,255,0.8), 0 0 80px rgba(180,140,255,0.6);
+    animation: numberPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes numberPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .opening-subtitle {
+    font-size: 22px; color: #222;
+    margin-top: 10px; letter-spacing: 4px;
+    font-weight: 500;
+  }
+
+  /* ===== Welcome ===== */
+  .welcome-container {
+    display: flex; align-items: center; justify-content: center;
+    gap: 80px; width: 100%; padding: 0 60px;
+  }
+  .welcome-left {
+    text-align: right; flex: 1;
+  }
+  .welcome-title {
+    font-size: 56px; font-weight: 900;
+    color: #5a3d8a;
+    line-height: 1.4;
+    text-shadow: 2px 2px 8px rgba(90,61,138,0.2);
+  }
+  .welcome-right {
+    flex: 1; text-align: left;
+  }
+  .welcome-number {
+    font-size: 200px; font-weight: 900;
+    color: #b48cff;
+    text-shadow: 0 0 30px rgba(180,140,255,0.5);
+    line-height: 1;
+  }
+  .gift-btn {
+    margin-top: 50px;
+    padding: 18px 50px;
+    font-size: 22px; font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #b48cff, #8b5cf6);
+    border: none; border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(139,92,246,0.4);
+    transition: all 0.2s;
+    letter-spacing: 2px;
+  }
+  .gift-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 35px rgba(139,92,246,0.5);
+  }
+  .gift-btn:active { transform: translateY(0) scale(0.98); }
+
+  /* ===== Photo Wall ===== */
+  #photowall { position: relative; }
+  .photo-wall-container {
+    position: relative;
+    width: 700px; height: 600px;
+  }
+  .photo-item {
+    position: absolute;
+    width: 90px; height: 90px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+    border: 3px solid #fff;
+  }
+  .photo-item img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .photo-item:hover {
+    transform: scale(1.15) !important;
+    z-index: 100;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .gesture-hint {
+    position: absolute; bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px; color: #666;
+    background: rgba(255,255,255,0.7);
+    padding: 10px 25px; border-radius: 20px;
+    z-index: 50;
+  }
+  .gesture-status {
+    position: absolute; top: 20px; right: 20px;
+    padding: 8px 16px; border-radius: 20px;
+    font-size: 14px; color: #fff;
+    background: rgba(139,92,246,0.7);
+    z-index: 50;
+  }
+  #cameraPreview {
+    position: absolute; bottom: 20px; right: 20px;
+    width: 160px; height: 120px;
+    border-radius: 10px;
+    border: 2px solid rgba(139,92,246,0.5);
+    z-index: 50;
+    transform: scaleX(-1);
+    object-fit: cover;
+  }
+  .next-btn {
+    position: absolute; bottom: 30px;
+    padding: 14px 40px;
+    font-size: 18px; font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #b48cff, #8b5cf6);
+    border: none; border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+    transition: all 0.2s;
+    z-index: 60;
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139,92,246,0.5); }
+  .next-btn:active { transform: scale(0.97); }
+
+  /* ===== Stars Page ===== */
+  #stars { position: relative; }
+  .stars-title {
+    font-size: 28px; color: #5a3d8a;
+    margin-bottom: 20px; font-weight: 700;
+  }
+  .stars-counter {
+    font-size: 18px; color: #8b5cf6;
+    margin-bottom: 15px;
+  }
+  .stars-container {
+    position: relative;
+    width: 800px; height: 450px;
+  }
+  .star {
+    position: absolute;
+    font-size: 36px;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+    filter: drop-shadow(0 0 6px rgba(255,215,0,0.6));
+  }
+  .star:hover { transform: scale(1.3); }
+  .star.collected {
+    opacity: 0.2;
+    pointer-events: none;
+    transform: scale(0.5);
+  }
+  .blessing-popup {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: #fff;
+    padding: 30px 50px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    font-size: 22px; color: #5a3d8a;
+    font-weight: 600;
+    z-index: 200;
+    max-width: 500px;
+    text-align: center;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+  }
+  .blessing-popup.show { transform: translate(-50%, -50%) scale(1); }
+
+  /* ===== Cake Page ===== */
+  #cake { position: relative; }
+  .cake-title {
+    font-size: 26px; color: #5a3d8a;
+    margin-bottom: 20px; font-weight: 700;
+  }
+  .cake-container {
+    position: relative;
+    width: 500px; height: 420px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+  }
+  .cake-layer {
+    position: relative;
+    border-radius: 10px;
+    display: flex; align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+  }
+  .cake-layer.bottom {
+    width: 360px; height: 100px;
+    background: linear-gradient(180deg, #f5c6e0, #e8a0cc);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  .cake-layer.middle {
+    width: 280px; height: 90px;
+    background: linear-gradient(180deg, #d4b5f0, #b894e0);
+    margin-bottom: -5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+  }
+  .cake-layer.top {
+    width: 200px; height: 80px;
+    background: linear-gradient(180deg, #c9e8ff, #a8d4f0);
+    margin-bottom: -5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+  }
+  .candles-row {
+    display: flex; justify-content: space-around;
+    width: 100%; padding: 0 15px;
+    margin-top: -35px;
+  }
+  .candle {
+    position: relative;
+    width: 8px; height: 35px;
+    background: linear-gradient(180deg, #ff9eb5, #ff6b8a);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .flame {
+    position: absolute;
+    top: -18px; left: 50%;
+    transform: translateX(-50%);
+    width: 12px; height: 18px;
+    background: radial-gradient(ellipse at center bottom, #ffdd00, #ff8800, transparent);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    animation: flicker 0.3s ease-in-out infinite alternate;
+    transition: opacity 0.3s;
+  }
+  @keyframes flicker {
+    0% { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1.1) rotate(2deg); opacity: 0.85; }
+  }
+  .candle.blown .flame {
+    opacity: 0;
+  }
+  .candle.blown::after {
+    content: '';
+    position: absolute;
+    top: -15px; left: 50%;
+    transform: translateX(-50%);
+    width: 4px; height: 10px;
+    background: linear-gradient(180deg, rgba(150,150,150,0.6), transparent);
+    border-radius: 2px;
+    animation: smoke 1s ease-out forwards;
+  }
+  @keyframes smoke {
+    0% { opacity: 0.8; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  }
+  .cake-progress {
+    margin-top: 20px;
+    font-size: 18px; color: #8b5cf6;
+    font-weight: 600;
+  }
+  .wish-btn {
+    margin-top: 25px;
+    padding: 14px 40px;
+    font-size: 18px; font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #b48cff, #8b5cf6);
+    border: none; border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+    transition: all 0.2s;
+  }
+  .wish-btn:hover { transform: translateY(-2px); }
+  .wish-btn:active { transform: scale(0.97); }
+  .wish-btn:disabled {
+    opacity: 0.5; cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ===== Letter Page ===== */
+  #letter { position: relative; }
+  .letter-envelope {
+    background: #fff;
+    padding: 50px 60px;
+    border-radius: 15px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+    max-width: 550px;
+    line-height: 2.2;
+    font-size: 18px;
+    color: #444;
+    position: relative;
+    z-index: 10;
+  }
+  .letter-envelope::before {
+    content: '💌';
+    position: absolute; top: -25px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+  }
+  .letter-text {
+    white-space: pre-line;
+    font-family: "KaiTi", "STKaiti", serif;
+  }
+  .letter-signature {
+    text-align: right;
+    margin-top: 20px;
+    font-size: 16px;
+    color: #8b5cf6;
+  }
+  .final-fireworks {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Page 1: Opening Fireworks ===== -->
+<div id="opening" class="page active">
+  <canvas id="fireworksCanvas"></canvas>
+  <div class="opening-content">
+    <div class="opening-number">21</div>
+    <div class="opening-subtitle">今天，宇宙为你亮了一下</div>
+  </div>
+</div>
+
+<!-- ===== Page 2: Welcome ===== -->
+<div id="welcome" class="page">
+  <div class="welcome-container">
+    <div class="welcome-left">
+      <div class="welcome-title">杨子文<br>生日快乐</div>
+    </div>
+    <div class="welcome-right">
+      <div class="welcome-number">21</div>
+    </div>
+  </div>
+  <button class="gift-btn" id="openGiftBtn">打开这份礼物</button>
+</div>
+
+<!-- ===== Page 3: Photo Wall ===== -->
+<div id="photowall" class="page">
+  <div class="gesture-status" id="gestureStatus">手势识别：等待启动</div>
+  <div class="photo-wall-container" id="photoWall"></div>
+  <video id="cameraPreview" autoplay playsinline muted></video>
+  <div class="gesture-hint">🖐 张开手掌 → 照片散开 &nbsp;&nbsp; ✊ 握拳 → 组成爱心</div>
+  <button class="next-btn" id="photoWallNext" style="bottom:80px;">下一步：收集星星 ✨</button>
+</div>
+
+<!-- ===== Page 4: Stars ===== -->
+<div id="stars" class="page">
+  <div class="stars-title">收集 21 颗星星，每一颗都藏着一句祝福</div>
+  <div class="stars-counter" id="starsCounter">已收集：0 / 21</div>
+  <div class="stars-container" id="starsContainer"></div>
+  <div class="blessing-popup" id="blessingPopup"></div>
+  <button class="next-btn" id="starsNext" style="bottom:30px; display:none;">吹蜡烛许愿 🕯️</button>
+</div>
+
+<!-- ===== Page 5: Cake ===== -->
+<div id="cake" class="page">
+  <div class="cake-title">闭上眼睛，许个愿吧～ 用鼠标划过蜡烛吹灭它们</div>
+  <div class="cake-container">
+    <div class="cake-layer top">
+      <div class="candles-row" id="candlesTop"></div>
+    </div>
+    <div class="cake-layer middle">
+      <div class="candles-row" id="candlesMiddle"></div>
+    </div>
+    <div class="cake-layer bottom">
+      <div class="candles-row" id="candlesBottom"></div>
+    </div>
+  </div>
+  <div class="cake-progress" id="cakeProgress">已吹灭：0 / 21</div>
+  <button class="wish-btn" id="wishDoneBtn" disabled>我许完了</button>
+</div>
+
+<!-- ===== Page 6: Letter ===== -->
+<div id="letter" class="page">
+  <canvas class="final-fireworks" id="finalFireworks"></canvas>
+  <div class="letter-envelope">
+    <div class="letter-text">hi！21 岁的羊羊羊。
+
+我们已经认识满两年咯，从第一次的没记住脸到现在已经同床共枕。
+时间过得真快，希望我们以后能越来越好！
+永远健康快乐，一定要有钱！
+生日快乐！我爱你＾3＾</div>
+    <div class="letter-signature">—— 永远爱你的人</div>
+  </div>
+</div>
+
+<script>
+// ============ Photo list ============
+const photoFiles = [
+  "微信图片_20260908155211_56_2.jpg",
+  "微信图片_20260908155212_57_2.jpg",
+  "微信图片_20260908155213_58_2.jpg",
+  "微信图片_20260908155214_59_2.jpg",
+  "微信图片_20260908155215_60_2.jpg",
+  "微信图片_20260908155216_61_2.jpg",
+  "微信图片_20260908155216_62_2.jpg",
+  "微信图片_20260908155218_63_2.jpg",
+  "微信图片_20260908155219_64_2.jpg",
+  "微信图片_20260908155243_65_2.jpg",
+  "微信图片_20260908155244_66_2.jpg",
+  "微信图片_20260908155245_67_2.jpg",
+  "微信图片_20260908155246_68_2.jpg",
+  "微信图片_20260908155247_69_2.jpg",
+  "微信图片_20260908155248_70_2.jpg",
+  "微信图片_20260908155249_71_2.jpg",
+  "微信图片_20260908155250_72_2.jpg",
+  "微信图片_20260908155251_73_2.jpg",
+  "微信图片_20260908155306_74_2.jpg",
+  "微信图片_20260908155307_75_2.jpg",
+  "微信图片_20260908155308_76_2.jpg",
+  "微信图片_20260908155309_77_2.jpg"
+];
+
+// ============ Blessings ============
+const blessings = [
+  "每一个我觉得快乐的瞬间，都有你的功劳",
+  "我希望你一切都好",
+  "希望所有俗套的祝福语都在你身上灵验",
+  "希望比起过去的时间，未来的日子你能够更幸福",
+  "生日快乐，长岁常安",
+  "祝你温柔浪漫，不失爱与果敢",
+  "祝你有良好的睡眠，健康的身体",
+  "前进的勇气，以及万事都平淡的心境",
+  "祝你快乐，不止生日",
+  "愿你眼里有光，心中有爱",
+  "愿你被这个世界温柔以待",
+  "所有美好都如期而至",
+  "岁岁常欢愉，万事皆胜意",
+  "愿你往后余生，平安喜乐",
+  "你是我所有温柔的来源",
+  "遇见你，是我最幸运的事",
+  "愿我们的故事，未完待续",
+  "你笑起来真好看，像春天的花一样",
+  "愿你做自己的太阳，无需凭借谁的光",
+  "这世界全部的漂亮，不过你的可爱模样",
+  "我会一直在你身边，一年又一年"
+];
+
+// ============ Page navigation ============
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active', 'fade-in');
+  });
+  const target = document.getElementById(pageId);
+  target.classList.add('active', 'fade-in');
+}
+
+// ============ Fireworks Engine ============
+function createFireworks(canvasId, duration) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const rockets = [];
+  const colors = ['#ff6b8a', '#ffd700', '#8b5cf6', '#00d4ff', '#ff8c42', '#ff69b4', '#7fff00'];
+
+  class Rocket {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = canvas.height;
+      this.targetY = Math.random() * canvas.height * 0.4 + 50;
+      this.speed = 6 + Math.random() * 4;
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+      this.trail = [];
+    }
+    update() {
+      this.trail.push({x: this.x, y: this.y});
+      if (this.trail.length > 8) this.trail.shift();
+      this.y -= this.speed;
+      if (this.y <= this.targetY) {
+        this.explode();
+        return false;
+      }
+      return true;
+    }
+    explode() {
+      const count = 60 + Math.floor(Math.random() * 40);
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count;
+        const speed = 2 + Math.random() * 4;
+        particles.push(new Particle(this.x, this.y, angle, speed, this.color));
+      }
+    }
+    draw() {
+      ctx.beginPath();
+      this.trail.forEach((p, i) => {
+        ctx.globalAlpha = i / this.trail.length;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(p.x, p.y, 3, 3);
+      });
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  class Particle {
+    constructor(x, y, angle, speed, color) {
+      this.x = x; this.y = y;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.color = color;
+      this.life = 1;
+      this.decay = 0.012 + Math.random() * 0.008;
+      this.size = 2 + Math.random() * 2;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vy += 0.05;
+      this.vx *= 0.99;
+      this.life -= this.decay;
+      return this.life > 0;
+    }
+    draw() {
+      ctx.globalAlpha = this.life;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  let running = true;
+  let rocketTimer = 0;
+
+  function animate() {
+    if (!running) return;
+    ctx.fillStyle = 'rgba(232, 223, 245, 0.15)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    rocketTimer++;
+    if (rocketTimer > 25) {
+      rocketTimer = 0;
+      rockets.push(new Rocket());
+    }
+
+    for (let i = rockets.length - 1; i >= 0; i--) {
+      if (!rockets[i].update()) rockets.splice(i, 1);
+      else rockets[i].draw();
+    }
+    for (let i = particles.length - 1; i >= 0; i--) {
+      if (!particles[i].update()) particles.splice(i, 1);
+      else particles[i].draw();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  if (duration) {
+    setTimeout(() => { running = false; }, duration);
+  }
+  return () => { running = false; };
+}
+
+// ============ Opening sequence ============
+window.addEventListener('load', () => {
+  createFireworks('fireworksCanvas', 5000);
+  setTimeout(() => {
+    const opening = document.getElementById('opening');
+    opening.classList.add('fade-out');
+    setTimeout(() => {
+      opening.classList.remove('active', 'fade-out');
+      showPage('welcome');
+    }, 800);
+  }, 5000);
+});
+
+// ============ Welcome button ============
+document.getElementById('openGiftBtn').addEventListener('click', function() {
+  showPage('photowall');
+  initPhotoWall();
+  initGesture();
+});
+
+// ============ Photo Wall ============
+let photoWallInitialized = false;
+let heartPositions = [];
+let scatterPositions = [];
+
+function generateHeartPositions(count) {
+  const positions = [];
+  const centerX = 350, centerY = 280;
+  const scale = 14;
+  for (let i = 0; i < count; i++) {
+    const t = (i / count) * Math.PI * 2;
+    const x = 16 * Math.pow(Math.sin(t), 3);
+    const y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+    positions.push({
+      x: centerX + x * scale - 45,
+      y: centerY + y * scale - 45
+    });
+  }
+  return positions;
+}
+
+function generateScatterPositions(count) {
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    positions.push({
+      x: Math.random() * 580,
+      y: Math.random() * 480,
+      rotate: (Math.random() - 0.5) * 40
+    });
+  }
+  return positions;
+}
+
+function initPhotoWall() {
+  if (photoWallInitialized) return;
+  photoWallInitialized = true;
+
+  const wall = document.getElementById('photoWall');
+  heartPositions = generateHeartPositions(photoFiles.length);
+  scatterPositions = generateScatterPositions(photoFiles.length);
+
+  photoFiles.forEach((file, i) => {
+    const div = document.createElement('div');
+    div.className = 'photo-item';
+    div.innerHTML = `<img src="photos/${file}" alt="回忆${i+1}" loading="lazy">`;
+    div.style.left = heartPositions[i].x + 'px';
+    div.style.top = heartPositions[i].y + 'px';
+    div.dataset.index = i;
+    wall.appendChild(div);
+  });
+}
+
+function scatterPhotos() {
+  const items = document.querySelectorAll('.photo-item');
+  items.forEach((item, i) => {
+    const pos = scatterPositions[i];
+    item.style.left = pos.x + 'px';
+    item.style.top = pos.y + 'px';
+    item.style.transform = `rotate(${pos.rotate}deg)`;
+  });
+}
+
+function formHeart() {
+  const items = document.querySelectorAll('.photo-item');
+  items.forEach((item, i) => {
+    item.style.left = heartPositions[i].x + 'px';
+    item.style.top = heartPositions[i].y + 'px';
+    item.style.transform = 'rotate(0deg)';
+  });
+}
+
+// ============ Gesture Recognition ============
+let gestureInitialized = false;
+let currentGesture = 'heart';
+
+async function initGesture() {
+  if (gestureInitialized) return;
+  gestureInitialized = true;
+
+  const statusEl = document.getElementById('gestureStatus');
+  const video = document.getElementById('cameraPreview');
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
+    video.srcObject = stream;
+    statusEl.textContent = '手势识别：已启动';
+
+    // Load MediaPipe Hands
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
+    script.onload = () => {
+      const hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 0,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.5
+      });
+      hands.onResults((results) => {
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          const landmarks = results.multiHandLandmarks[0];
+          const gesture = detectGesture(landmarks);
+          if (gesture === 'open' && currentGesture !== 'scatter') {
+            currentGesture = 'scatter';
+            scatterPhotos();
+            statusEl.textContent = '🖐 手掌张开 - 照片散开';
+          } else if (gesture === 'fist' && currentGesture !== 'heart') {
+            currentGesture = 'heart';
+            formHeart();
+            statusEl.textContent = '✊ 握拳 - 组成爱心';
+          }
+        }
+      });
+
+      async function processFrame() {
+        if (video.readyState >= 2) {
+          await hands.send({ image: video });
+        }
+        requestAnimationFrame(processFrame);
+      }
+      processFrame();
+    };
+    document.head.appendChild(script);
+  } catch (err) {
+    statusEl.textContent = '摄像头未授权，可用按钮切换';
+    // Add fallback buttons
+    const hint = document.querySelector('.gesture-hint');
+    hint.innerHTML = '<button onclick="scatterPhotos()" style="padding:8px 20px;margin:0 10px;border:none;border-radius:15px;background:#b48cff;color:#fff;cursor:pointer;">🖐 散开</button><button onclick="formHeart()" style="padding:8px 20px;margin:0 10px;border:none;border-radius:15px;background:#b48cff;color:#fff;cursor:pointer;">✊ 爱心</button>';
+  }
+}
+
+function detectGesture(landmarks) {
+  // landmarks: 0=wrist, 4=thumb tip, 8=index tip, 12=middle tip, 16=ring tip, 20=pinky tip
+  // 5,9,13,17 = MCP joints
+  const wrist = landmarks[0];
+  const tips = [landmarks[8], landmarks[12], landmarks[16], landmarks[20]];
+  const mcps = [landmarks[5], landmarks[9], landmarks[13], landmarks[17]];
+
+  let extended = 0;
+  for (let i = 0; i < 4; i++) {
+    const tipDist = Math.hypot(tips[i].x - wrist.x, tips[i].y - wrist.y);
+    const mcpDist = Math.hypot(mcps[i].x - wrist.x, mcps[i].y - wrist.y);
+    if (tipDist > mcpDist * 1.3) extended++;
+  }
+
+  if (extended >= 3) return 'open';
+  if (extended <= 1) return 'fist';
+  return 'neutral';
+}
+
+// ============ Photo Wall Next ============
+document.getElementById('photoWallNext').addEventListener('click', function() {
+  showPage('stars');
+  initStars();
+});
+
+// ============ Stars ============
+let starsInitialized = false;
+let collectedCount = 0;
+
+function initStars() {
+  if (starsInitialized) return;
+  starsInitialized = true;
+
+  const container = document.getElementById('starsContainer');
+  const positions = [];
+
+  // Generate non-overlapping positions
+  for (let i = 0; i < 21; i++) {
+    let x, y, valid;
+    let attempts = 0;
+    do {
+      x = Math.random() * 740 + 20;
+      y = Math.random() * 390 + 20;
+      valid = true;
+      for (const p of positions) {
+        if (Math.hypot(p.x - x, p.y - y) < 55) { valid = false; break; }
+      }
+      attempts++;
+    } while (!valid && attempts < 100);
+    positions.push({x, y});
+
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.textContent = '⭐';
+    star.style.left = x + 'px';
+    star.style.top = y + 'px';
+    star.style.animationDelay = (i * 0.1) + 's';
+    star.addEventListener('click', function() {
+      if (this.classList.contains('collected')) return;
+      this.classList.add('collected');
+      collectedCount++;
+      document.getElementById('starsCounter').textContent = `已收集：${collectedCount} / 21`;
+      showBlessing();
+      if (collectedCount >= 21) {
+        setTimeout(() => {
+          document.getElementById('starsNext').style.display = 'block';
+        }, 800);
+      }
+    });
+    container.appendChild(star);
+  }
+}
+
+function showBlessing() {
+  const popup = document.getElementById('blessingPopup');
+  const blessing = blessings[Math.floor(Math.random() * blessings.length)];
+  popup.textContent = blessing;
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 1800);
+}
+
+document.getElementById('starsNext').addEventListener('click', function() {
+  showPage('cake');
+  initCake();
+});
+
+// ============ Cake ============
+let cakeInitialized = false;
+let blownCount = 0;
+
+function initCake() {
+  if (cakeInitialized) return;
+  cakeInitialized = true;
+
+  createCandles('candlesTop', 5);
+  createCandles('candlesMiddle', 7);
+  createCandles('candlesBottom', 9);
+}
+
+function createCandles(containerId, count) {
+  const container = document.getElementById(containerId);
+  for (let i = 0; i < count; i++) {
+    const candle = document.createElement('div');
+    candle.className = 'candle';
+    candle.innerHTML = '<div class="flame"></div>';
+    candle.addEventListener('mouseenter', function() {
+      if (!this.classList.contains('blown')) {
+        this.classList.add('blown');
+        blownCount++;
+        document.getElementById('cakeProgress').textContent = `已吹灭：${blownCount} / 21`;
+        if (blownCount >= 21) {
+          document.getElementById('wishDoneBtn').disabled = false;
+        }
+      }
+    });
+    // Also support click for touch devices
+    candle.addEventListener('click', function() {
+      if (!this.classList.contains('blown')) {
+        this.classList.add('blown');
+        blownCount++;
+        document.getElementById('cakeProgress').textContent = `已吹灭：${blownCount} / 21`;
+        if (blownCount >= 21) {
+          document.getElementById('wishDoneBtn').disabled = false;
+        }
+      }
+    });
+    container.appendChild(candle);
+  }
+}
+
+document.getElementById('wishDoneBtn').addEventListener('click', function() {
+  if (this.disabled) return;
+  showPage('letter');
+  createFireworks('finalFireworks');
+});
+
+// ============ Resize handler ============
+window.addEventListener('resize', () => {
+  const canvases = document.querySelectorAll('canvas');
+  canvases.forEach(c => {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+  });
+});
+</script>
+</body>
+</html>
